@@ -17,10 +17,10 @@ format:
 
 - Get set up:
 
--   Visit [rss.jumpingrivers.training/welcome](https://rss.jumpingrivers.training/welcome)
--   Enter your email address and the password **fruity-fruity**
--   Log in at [rss.jumpingrivers.training](https://rss.jumpingrivers.training) with your new username and password
--  Slides: [github.com/jumpingrivers/rss-making-maps](https://github.com/jumpingrivers/rss-making-maps)
+    -   Visit [rss.jumpingrivers.training/welcome](https://rss.jumpingrivers.training/welcome)
+    -   Enter your email address and the password **fruity-fruity**
+    -   Log in at [rss.jumpingrivers.training](https://rss.jumpingrivers.training) with your new username and password
+-  Slides: [bit.ly/rss-making-maps](https://bit.ly/rss-making-maps)
 
 ```{r}
 countdown::countdown(
@@ -433,8 +433,7 @@ tm_shape(nz) +
 ```{r view-mode}
 #| code-line-numbers: "1"
 #| echo: true
-#| fig-width: 7
-#| fig-height: 6
+#| fig-height: 4
 #| message: false
 #| warning: false
 #| output-location: column

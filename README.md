@@ -1,5 +1,9 @@
 # 2023 RSS Making Maps
 
+
+
+Slides at [bit.ly/rss-making-maps](https://bit.ly/rss-making-maps)
+
 ### Packages required to do tasks
 
 ```{r}
