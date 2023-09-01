@@ -1,0 +1,503 @@
+---
+title: "Making Maps!"
+subtitle: "Visualising spatial data in R"
+author: "Rhian Davies"
+format:
+  revealjs: 
+    theme: [default, custom.scss]
+    logo: logo.svg
+    code-link: true
+    css: custom.scss
+    self-contained: true
+    preview-links: true
+    code-overflow: wrap
+---
+
+## Welcome
+
+- Get set up:
+
+-   Visit [rss.jumpingrivers.training/welcome](https://rss.jumpingrivers.training/welcome)
+-   Enter your email address and the password **fruity-fruity**
+-   Log in at [rss.jumpingrivers.training](https://rss.jumpingrivers.training) with your new username and password
+-  Slides: [github.com/jumpingrivers/rss-making-maps](https://github.com/jumpingrivers/rss-making-maps)
+
+```{r}
+countdown::countdown(
+  minutes = 5,
+  left = 0,
+  margin = "0em"
+)
+```
+
+# Introduction to Spatial Data in R {background-color="#5b868d"}
+
+```{r libraries}
+#| message: false
+#| warning: false
+library("sf")
+library("ggplot2")
+library("tmap")
+```
+
+## Spatial in R
+
+::::columns
+:::column
+-   Overview on [CRAN Views](https://cran.r-project.org/web/views/Spatial.html)
+-   [{sf}](https://r-spatial.github.io/sf/) for spatial data
+-   [{tmap}](https://r-tmap.github.io/tmap/) for visualisation
+:::
+
+::: column
+![](img/map-low.jpg){fig-align="center" fig-alt="Cartoon robot with a map of the world"}
+:::
+
+::::
+## Raster data
+
+::: columns
+::: column
+-   A grid made up of cells
+-   Usually equally spaced squares
+-   Can have a pixelated look and feel
+-   Often very large
+:::
+
+::: column
+```{r raster}
+#| message: false
+#| fig-width: 7
+#| fig-height: 6
+data(nz_elev, package = "jrSpatial")
+nz_region = st_bbox(c(xmin = 1340000, xmax = 1450000,
+                      ymin = 5130000, ymax = 5210000))
+
+tm_shape(nz_elev, bbox = nz_region) +
+  tm_raster(style = "cont",
+            palette = "YlGn",
+            legend.show = FALSE) +
+  tm_scale_bar(position = c("left", "bottom"))
+```
+:::
+:::
+
+## Vector data
+
+::: columns
+::: column
+-   Made of individual points
+-   Join points to make lines and polygons
+-   Data isn't dependent on grid size like raster data
+:::
+
+::: column
+```{r vector}
+#| message: false
+#| fig-width: 7
+#| fig-height: 6
+data(nz, package = "jrSpatial")
+tm_shape(nz) +
+  tm_fill() +
+  tm_borders()
+```
+:::
+:::
+
+## Open Geography portal
+
+![](img/OGP.png){fig-align="center" fig-alt="QR code"}
+
+::: aside
+[geoportal.statistics.gov.uk](https://geoportal.statistics.gov.uk/)
+:::
+
+
+## Geometry data
+
+::: panel-tabset
+
+## ESRI shapefile
+
+-   Folder with at least 3 files
+-   `.shp` - The geometries i.e. the actual "shapes"
+-   `.shx` - Index file
+-   `.dbf` - Feature attributes i.e. population of a country.
+-   Read in the `.shp` file
+
+## GeoJSON
+
+-   One file with the extension `.geojson`
+-   Contains JSON code description each feature, it's geometry and it's attributes.
+
+## MapInfo
+
+-   Folder with at least 4 files
+-   `.TAB` - Central file
+-   `.DAT` - Attribute data
+-   `.MAP` - Geographic information
+-   `.ID` - Links geographic data to the database
+-   Read in the `.TAB` file
+:::
+
+
+## Reading in data
+
+```{r load data}
+#| echo: true
+#| output: false
+library("sf")
+world = st_read("data/countries.geojson")
+```
+
+```{r plot data}
+#| echo: true
+plot(world)
+```
+
+## Just a dataframe
+
+```{r head}
+world |>
+  head() |>
+  knitr::kable()
+```
+
+## Your turn
+
+-   Open a new R script
+-   Load {sf} package
+-   Us `st_read` to load the ESRI data in `data/ukgeom` 
+-   View with `plot()`
+
+```{r}
+#| eval: false
+#| echo: true
+
+```
+
+```{r task1}
+countdown::countdown(
+  minutes = 7,
+  left = 0,
+  margin = "0em"
+)
+```
+
+# Let's make maps! {background-color="#5b868d"}
+
+## Mapping packages
+
+:::columns
+
+:::column
+
+-   {tmap}
+-   {leaflet}
+-   {cartogram}
+-   {rasterViz}
+-   {ggplot2}
+:::
+
+::: column
+```{r cartogram, out.width= "95%", echo = FALSE, message = FALSE, warning= FALSE}
+library("tmap")
+library("ggplot2")
+
+data(world, package = "jrSpatial")
+data(ukgeom, package = "jrSpatial")
+
+africa =
+  dplyr::filter(world, continent == "Africa") %>%
+  sf::st_transform(3395)
+
+africa_cart = cartogram::cartogram_cont(africa, "pop", itermax = 5)
+
+tm_shape(africa_cart) +
+  tm_polygons("pop", style = "jenks", palette = "PuRd") +
+  tm_layout(frame = FALSE, legend.show = FALSE)
+
+ggplot() +
+  geom_sf(data = ukgeom, aes(fill = population_2015)) + 
+  theme_bw()
+```
+::: 
+::::
+## My first {tmap}
+
+```{r}
+#| echo: true
+#| code-line-numbers: 1|2|3
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+library("tmap")
+tm_shape(nz) + 
+  tm_polygons()
+```
+
+## Adding polygons
+
+```{r fillborders}
+#| code-line-numbers: "2-3"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_fill(col = "cornflowerblue") +
+  tm_borders(col = "maroon")
+```
+
+## Adding lines
+
+```{r}
+#| output: false
+dataset = st_read("data/Major_Road_Network_2018_Open_Roads/Major_Road_Network_2018_Open_Roads.shp")
+```
+
+```{r}
+#| code-line-numbers: "2"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(dataset) +
+  tm_lines()
+```
+
+
+## Adding dots
+
+```{r}
+#| code-line-numbers: "3-4|5-6"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+data(ukgeom, package = "jrSpatial")
+data(ukhills, package = "jrSpatial")
+tm_shape(ukgeom) + 
+  tm_polygons() +
+tm_shape(ukhills) + 
+  tm_dots()
+```
+
+## Colour by the data
+
+```{r}
+#| code-line-numbers: "2"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_fill(col = "Median_income") +
+  tm_borders()
+```
+
+## Changing the breaks
+
+```{r}
+#| echo: true 
+#| code-line-numbers: "3-5"
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_fill("Median_income",
+          breaks = c(22000,
+                     28000,
+                     34000)) +
+  tm_borders()
+```
+
+## Changing the colour palettes
+
+```{r}
+#| echo: true
+#| code-line-numbers: "6"
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_fill("Median_income",
+          breaks = c(22000,
+                     28000,
+                     34000),
+          palette = "PuRd"
+  ) +
+  tm_borders()
+```
+
+
+## The `tm_layout()` function
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3-7|4|5-6"
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_fill(col = "Median_income") +
+  tm_layout(
+    title = "New Zealand",
+    legend.position = c("right",
+                        "bottom")
+  )
+```
+
+## The `tm_layout()` function
+
+```{r}
+#| code-line-numbers: "5"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_fill(col = "Median_income") +
+  tm_layout(
+    title = "New Zealand",
+    legend.outside = TRUE
+  )
+```
+
+## Task 2
+
+- Use `tm_shape()` & `tm_polygons()` to plot the UK data
+- Choose a column of the data to fill the polygon `tm_polygons(col = "COL_NAME")`
+-  Use [colorbrewer2.org](https://colorbrewer2.org) to set the `palette` argument in `tm_polygons()`
+- Try setting the `breaks` argument
+- Play with the settings in `tm_layout()`
+
+```{r task2}
+countdown::countdown(
+  minutes = 15,
+  left = 0,
+  margin = "0em"
+)
+```
+
+
+# Extra tips & tricks {background-color="#5b868d"}
+
+## Joining data
+
+```{r}
+#| echo: true
+data(world, package = "jrSpatial")
+data(worldstats, package = "jrSpatial")
+
+merged = dplyr::left_join(world, worldstats,
+                 by = c("name_long" = "name"))
+```
+
+## Add scale and compass
+
+```{r}
+#| echo: true
+#| code-line-numbers: "3-4"
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_borders() +
+  tm_compass() +
+  tm_scale_bar()
+```
+
+## Make interactive
+
+```{r view-mode}
+#| code-line-numbers: "1"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tmap_mode("view")
+tm_shape(nz) +
+  tm_fill(col = "Median_income")
+```
+
+- To return to plot mode, call `tmap_mode("plot")`
+
+```{r plot-mode}
+tmap_mode("plot")
+```
+
+## Add text
+
+```{r}
+#| code-line-numbers: "3-4"
+#| echo: true
+#| fig-width: 7
+#| fig-height: 6
+#| message: false
+#| warning: false
+#| output-location: column
+tm_shape(nz) +
+  tm_borders(col = "red") +
+  tm_text(text = "Name",
+          size = 0.7)
+```
+
+## Task 3
+
+-   Load the `ukgeom`, `ukdata`.
+-   Combine `ukgeom` with `ukdata` using `left_join()`.
+-   Use {tmap} to map life expectancy
+-   Share your pretty map! #RSS2023Conf
+
+
+```{r task3}
+countdown::countdown(
+  minutes = 15,
+  left = 0,
+  margin = "0em"
+)
+```
+
+## Links & Resources
+
+-   Geocomputation with R book: [r.geocompx.org](https://r.geocompx.org/)
+
+-   {sf} package: [r-spatial.github.io/sf](https://r-spatial.github.io/sf/)
+
+-   [#rspatial](https://mstdn.social/tags/rspatial) on social media
+
+-   Our [training courses](https://www.jumpingrivers.com/training/all-courses/)
+
+# Questions? {background-color="#5b868d"}
+
+<br>
+
+{{< fa brands twitter >}} [@statsRhian](https://twitter.com/StatsRhian)
+
+{{< fa briefcase >}} [jumpingrivers.com](https://www.jumpingrivers.com/)
+
+{{< fa calendar >}} [shiny-in-production.jumpingrivers.com](https://shiny-in-production.jumpingrivers.com/)
+
